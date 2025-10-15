@@ -100,6 +100,16 @@ resource "google_artifact_registry_repository_iam_member" "sa_writer" {
   ]
 }
 
+# Give service account permission to run builds
+resource "google_project_iam_binding" "cloudbuild_builder" {
+  project = var.project_id
+  role    = "roles/cloudbuild.builds.builder"
+
+  members = [
+    "serviceAccount:${google_service_account.github_cicd.email}",
+  ]
+}
+
 // (Optional) Grant additional role if you need storage permission; uncomment if needed
 // resource "google_project_iam_member" "sa_storage_admin" {
 //   project = var.project_id
@@ -115,29 +125,7 @@ resource "google_service_account_key" "github_cicd_key" {
   }
 }
 
-variable "github_owner" {
-  default = "Niraj-KC"
-}
 
-variable "github_repo" {
-  default = "ChatVerse"
-}
-
-resource "google_cloudbuild_trigger" "github_trigger" {
-  name        = "chatverse-build-trigger"
-  description = "Build client and server images from ChatVerse repo"
-
-  github {
-    owner = var.github_owner
-    name  = var.github_repo
-
-    push {
-      branch = "^main$"
-    }
-  }
-
-  filename = "cloud_build/cloudbuild.yaml"
-}
 
 
 // Outputs

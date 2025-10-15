@@ -1,13 +1,17 @@
 steps:
   # Step 1: Install Terraform
-  - name: 'hashicorp/terraform:1.7.0'
-    entrypoint: 'sh'
+  - name: "hashicorp/terraform:1.7.0"
+    entrypoint: "sh"
     args:
-      - '-c'
+      - "-c"
       - |
+        export TF_VAR_project_id="chatverse-475212"
+        export TF_VAR_region="global"
+        export TF_VAR_location="asia-south1"
+        export TF_VAR_repo_id="ChatVerse-Infra"
         terraform init
         terraform plan -out=tfplan
-        terraform apply -auto-approve tfplan
+        terraform apply -input=false -auto-approve
 
 # Use the service account created above
 serviceAccount: terraform-builder@chatverse-475212.iam.gserviceaccount.com

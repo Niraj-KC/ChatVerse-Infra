@@ -115,6 +115,31 @@ resource "google_service_account_key" "github_cicd_key" {
   }
 }
 
+variable "github_owner" {
+  default = "Niraj-KC"
+}
+
+variable "github_repo" {
+  default = "ChatVerse"
+}
+
+resource "google_cloudbuild_trigger" "github_trigger" {
+  name        = "chatverse-build-trigger"
+  description = "Build client and server images from ChatVerse repo"
+
+  github {
+    owner = var.github_owner
+    name  = var.github_repo
+
+    push {
+      branch = "^main$"
+    }
+  }
+
+  filename = "cloud_build/cloudbuild.yaml"
+}
+
+
 // Outputs
 output "service_account_email" {
   description = "The email of the GitHub CI/CD service account"
@@ -131,11 +156,3 @@ output "service_account_key_json" {
   value       = google_service_account_key.github_cicd_key.private_key
   sensitive   = true
 }
-
-// NOTES:
-// 1) Terraform will store the service account key in the state file. Treat the state as sensitive and store it securely.
-// 2) Best practice: use Workload Identity Federation from GitHub Actions instead of long-lived SA keys. This TF example creates a key for convenience/testing.
-// 3) After `terraform apply`, copy the `service_account_key_json` output and add it as a GitHub repository secret GCP_SA_KEY.
-// 4) Example Docker image push URI (in GitHub Actions):
-//    IMAGE_URI="${var.location}-docker.pkg.dev/${var.project_id}/${var.repo_id}/my-app:${GITHUB_SHA}"
-// 5) If you want Terraform to also create a Secret Manager secret with the key, ask me and I can extend this config.

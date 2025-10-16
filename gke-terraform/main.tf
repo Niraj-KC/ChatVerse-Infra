@@ -17,10 +17,10 @@ provider "google" {
 # ───────────────
 # VPC Network
 # ───────────────
-#resource "google_compute_network" "vpc_network" {
-#  name                    = "${var.cluster_name}-vpc"
-#  auto_create_subnetworks = true
-#}
+resource "google_compute_network" "vpc_network" {
+  name                    = "${var.cluster_name}-vpc"
+  auto_create_subnetworks = true
+}
 
 # ───────────────
 # GKE Cluster

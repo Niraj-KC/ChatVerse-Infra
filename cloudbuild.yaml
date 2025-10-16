@@ -14,8 +14,8 @@ steps:
       - "-c"
       - |
         # set a simple environment file for later steps (Cloud Build persists workspace)
-        echo "PROJECT_ID=chatverse-475212" > /workspace/buildenv
-        echo "TF_BUCKET=" >> /workspace/buildenv  # optional: set GCS bucket name for remote state if you have one
+        echo "PROJECT_ID=chatverse-475306" > /workspace/buildenv
+        # echo "TF_BUCKET=" >> /workspace/buildenv  # optional: set GCS bucket name for remote state if you have one
 
   # 1) Enable required GCP APIs (runs as the build service account)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'

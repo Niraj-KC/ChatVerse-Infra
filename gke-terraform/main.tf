@@ -54,6 +54,10 @@ resource "google_container_node_pool" "primary_nodes" {
 
   node_config {
     machine_type = var.machine_type
+
+    disk_size_gb = 20           # can be 20–50 GB for dev workloads
+    disk_type    = "pd-standard" # or "pd-ssd" if you need SSD
+
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",
     ]

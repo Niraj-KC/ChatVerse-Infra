@@ -3,11 +3,11 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 # Use the Terraform-running service account (must have the IAM roles listed below)
-serviceAccount: terraform-builder@chatverse-475212.iam.gserviceaccount.com
+serviceAccount: terraform-builder@chatverse-475306.iam.gserviceaccount.com
 
 steps:
   # 0) Make sure PROJECT var is available (optional but convenient)
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "set-project-var"
     entrypoint: "bash"
     args:
@@ -18,7 +18,7 @@ steps:
         # echo "TF_BUCKET=" >> /workspace/buildenv  # optional: set GCS bucket name for remote state if you have one
 
   # 1) Enable required GCP APIs (runs as the build service account)
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "enable-apis"
     entrypoint: "bash"
     args:
@@ -36,7 +36,7 @@ steps:
   # 2) Run Terraform: init, validate, plan, apply (uses hashicorp/terraform image)
   - name: "hashicorp/terraform:1.7.0"
     id: "terraform-apply"
-    dir: "gke-terraform"        # <-- change if your Terraform files are in a different folder
+    dir: "gke-terraform" # <-- change if your Terraform files are in a different folder
     entrypoint: "sh"
     args:
       - "-c"

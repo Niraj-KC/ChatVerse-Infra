@@ -1,21 +1,64 @@
+# cloudbuild.yaml
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# Use the Terraform-running service account (must have the IAM roles listed below)
+serviceAccount: terraform-builder@chatverse-475212.iam.gserviceaccount.com
+
 steps:
-  # Step 1: Install Terraform
+  # 0) Make sure PROJECT var is available (optional but convenient)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: "set-project-var"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        # set a simple environment file for later steps (Cloud Build persists workspace)
+        echo "PROJECT_ID=chatverse-475212" > /workspace/buildenv
+        echo "TF_BUCKET=" >> /workspace/buildenv  # optional: set GCS bucket name for remote state if you have one
+
+  # 1) Enable required GCP APIs (runs as the build service account)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: "enable-apis"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        source /workspace/buildenv || true
+        gcloud --project=${PROJECT_ID} services enable \
+          container.googleapis.com \
+          compute.googleapis.com \
+          artifactregistry.googleapis.com \
+          cloudbuild.googleapis.com \
+          iam.googleapis.com \
+          --quiet
+
+  # 2) Run Terraform: init, validate, plan, apply (uses hashicorp/terraform image)
   - name: "hashicorp/terraform:1.7.0"
+    id: "terraform-apply"
+    dir: "gke-terraform"        # <-- change if your Terraform files are in a different folder
     entrypoint: "sh"
     args:
       - "-c"
       - |
-        export TF_VAR_project_id="chatverse-475212"
-        export TF_VAR_region="global"
-        export TF_VAR_location="asia-south1"
-        export TF_VAR_repo_id="chatverse-docker-repo"
-        terraform init
-        terraform plan -out=tfplan
-        terraform apply -input=false -auto-approve
+        # Load project env
+        source /workspace/buildenv || true
 
-# Use the service account created above
-serviceAccount: terraform-builder@chatverse-475212.iam.gserviceaccount.com
+        # Terraform variables (set here or via terraform.tfvars in repo)
+        export TF_VAR_project_id="${PROJECT_ID}"
+        export TF_VAR_region="asia-south1"
+        export TF_VAR_cluster_name="chatverse-cluster"
+        export TF_VAR_node_count="2"
+        export TF_VAR_machine_type="e2-medium"
 
-# Optional: set a bucket for state (recommended)
-options:
-  logging: CLOUD_LOGGING_ONLY
+        # Optional: if you want remote state, uncomment / set TF_BACKEND_BUCKET and provide -backend-config
+        # terraform init -backend-config="bucket=${TF_BACKEND_BUCKET}" -input=false
+
+        terraform init -input=false
+        terraform fmt -check || true
+        terraform validate
+        terraform plan -out=tfplan -input=false
+        terraform apply -input=false tfplan
+
+# Optional: artifacts or substitutions can be added here if needed
+timeout: "1200s"

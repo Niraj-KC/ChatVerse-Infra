@@ -51,8 +51,7 @@ steps:
         export TF_VAR_node_count="2"
         export TF_VAR_machine_type="e2-medium"
 
-        # Optional: if you want remote state, uncomment / set TF_BACKEND_BUCKET and provide -backend-config
-        # terraform init -backend-config="bucket=${TF_BACKEND_BUCKET}" -input=false
+
 
         terraform init -input=false
         terraform fmt -check || true
